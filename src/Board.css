@@ -1,0 +1,7 @@
+
+.board__row:after {
+  clear: both;
+  content: "";
+  display: flex;
+  flex-direction: column;
+}
