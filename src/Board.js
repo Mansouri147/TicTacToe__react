@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import Square from "./Square";
 import "./Board.css";
 
-function Board({ givenRows, squares, onClick }) {
+function Board({ givenRows, squares, onClick ,xIsNext}) {
   const [rows, setRows] = useState([]);
   const [renderSquare, setRenderSquare] = useState([]);
-  const incrementor = useRef(0)
-
+  const incrementor = useRef(0);
+  
   useEffect(() => {
     setRows(
       Array(givenRows)
@@ -21,18 +21,15 @@ function Board({ givenRows, squares, onClick }) {
 
   return (
     <div className="board">
-      {rows.map((row, index) => (
-        <div key={index} className="board__row">
+      {rows.map((row) => (
+        <div key={row} className="board__row">
           {renderSquare.map((i) => {
-            // Each row should return three squares so we have 9 Square components from 0 to 8
-            row == 0 ? incrementor.current : incrementor.current += 3
-            i += incrementor.current
-
+            let squareIndex = i + rows.length * row;
             return (
               <Square
-                key={`square${index}${i}`}
-                value={squares[i]}
-                onClick={() => onClick([i])}
+                key={`square${row}${squareIndex}`}
+                value={squares[squareIndex]}
+                onClick={() => onClick([squareIndex])}
               />
             );
           })}

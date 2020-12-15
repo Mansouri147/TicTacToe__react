@@ -1,13 +1,20 @@
-import React from 'react'
+import React from "react";
 import "./Square.css";
-
+import { Button, IconButton } from "@material-ui/core";
 
 function Square(props) {
-    return (
-      <button className="square" onClick={props.onClick}>
+  return (
+    <IconButton>
+      <Button
+        variant="outlined"
+        className="square"
+        onClick={props.onClick}
+        color={props.value == "X" ? "primary" : props.value == "O" ? "secondary" : ""}
+      >
         {props.value}
-      </button>
-    );
-  }
+      </Button>
+    </IconButton>
+  );
+}
 
-export default Square
+export default Square;

@@ -4,44 +4,71 @@ import "./Game.css";
 import { FormControl, IconButton, Input } from "@material-ui/core";
 import SendRoundedIcon from "@material-ui/icons/SendRounded";
 
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
+const unflat = (squares, rows) =>
+  squares.reduce(
+    (acc, item, i) => (i % rows ? acc : [...acc, squares.slice(i, i + rows)]),
+    []
+  );
 
-const getRowCol = (num) => {
-  const RowCol = {
-    1: { row: 1, col: 1 },
-    2: { row: 1, col: 2 },
-    3: { row: 1, col: 3 },
-    4: { row: 2, col: 1 },
-    5: { row: 2, col: 2 },
-    6: { row: 2, col: 3 },
-    7: { row: 3, col: 1 },
-    8: { row: 3, col: 2 },
-    9: { row: 3, col: 3 },
-  };
-  return [RowCol[num].row, RowCol[num].col];
+const checkRows = (squares) => {
+  let rows = squares
+    .map((array) =>
+      array.every((num) => array[0] == num) ? array[0] : undefined
+    )
+    .filter((item) => item)[0];
+  return rows;
 };
+
+const checkCols = (squares) => {
+  for (let i = 0; i <= squares.length - 1; i++) {
+    let column = squares.map((item) => {
+      return item[i];
+    });
+    let colResult = column.reduce((acc, num) => (acc == num ? acc : undefined));
+    if (colResult) return colResult;
+  }
+};
+
+// checking first diagonal
+const checkStDgl = (squares) => {
+  let stdgl = squares.every((array, i) => squares[0][0] == array[i])
+    ? squares[0][0]
+    : undefined;
+  let winners = squares.reduce((acc, array, i) => {if (squares[0][0] && squares[0][0] == array[i]) { acc.push(array[i]); return acc} else return undefined},[])
+  return {stdgl: stdgl, winners: winners};
+};
+
+// check second diagonal
+const checkNdDgl = (squares) => {
+  let nddgl = squares.every(
+    (array, i) => squares[0][array.length - 1] == array[array.length - i - 1]
+  )
+    ? squares[0][squares[0].length - 1]
+    : undefined;
+  return nddgl;
+};
+
+function calculateWinner(bareSquares, rows) {
+  const squaresUnflated = unflat(bareSquares, rows);
+  const rowsRes = checkRows(squaresUnflated);
+  const colsRes = checkCols(squaresUnflated);
+  const stDgRes = checkStDgl(squaresUnflated);
+  const ndDgRes = checkNdDgl(squaresUnflated);
+
+  console.log('winners squares', stDgRes.winners)
+
+  return rowsRes || colsRes || stDgRes.stdgl || ndDgRes;
+}
 
 function Game() {
   const [rows, setRows] = useState(3);
   const [input, setInput] = useState(3);
+  const [lines, setLines] = useState(
+    [...new Array(rows).keys()].map((x) =>
+      [...new Array(rows).keys()].map((i) => i + x * rows)
+    )
+  );
+
   const [history, setHistory] = useState([
     {
       squares: Array(9).fill(null),
@@ -55,6 +82,7 @@ function Game() {
 
   const handleClick = (i) => {
     const moveNumber = parseInt(i) + 1;
+    console.log("move n°", moveNumber);
     const h = history.slice(0, stepNumber + 1);
     const current = h[h.length - 1];
     const squares = current.squares.slice();
@@ -84,9 +112,23 @@ function Game() {
   }, [stepNumber]);
 
   const current = history[stepNumber];
-  const winner = calculateWinner(current.squares);
+  const winner = calculateWinner(current.squares, rows);
+  if (winner == "X") {
+  }
+  console.log(current.squares)
+  
 
-  // setHistory([...history].sort((a, b) => b.sorter - a.sorter));
+
+    // setHistory([...history].sort((a, b) => b.sorter - a.sorter));
+    const getRowCol = (num) => {
+      const col = lines
+        .map((array, i) => array.indexOf(num))
+        .filter((item) => item >= 0);
+      const row = lines
+        .map((array, i) => (array.includes(num) ? i + 1 : undefined))
+        .filter((item) => item);
+      return [row, col];
+    };
 
   return (
     <div className="game">
@@ -119,26 +161,29 @@ function Game() {
           givenRows={rows}
           squares={current.squares}
           onClick={(e) => handleClick(e)}
+          xIsNext={xIsNext}
         />
       </div>
       <div className="game__info">
-        <div>
-          {winner
-            ? "Winner: " + winner
-            : "Next player: " + (xIsNext ? "X" : "O")}
+        <div className="game__winner">
+          {current.squares.includes(null)
+            ? winner
+              ? "Winner: " + winner
+              : "Next player: " + (xIsNext ? "X" : "O")
+            : "Draw"}
         </div>
         <ol>
           {history.map((step, move, l) => (
             <li key={move}>
               <button
                 style={{
-                  fontWeight: move === stepNumber ? "600" : undefined,
+                  fontWeight: move === stepNumber ? 600 : undefined,
                 }}
                 onClick={() => jumpTo(move)}
               >
                 {move
-                  ? `Go to move at row: ${getRowCol(step.moveNumber)[0]} col: ${
-                      getRowCol(step.moveNumber)[1]
+                  ? `Go to move at row: ${getRowCol(step.moveNumber)[1]} col: ${
+                      getRowCol(step.moveNumber)[0]
                     } and step #${step.sorter}`
                   : "Go to game start"}
               </button>
