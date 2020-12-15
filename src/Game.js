@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Board from "./Board";
 import "./Game.css";
-import { FormControl, IconButton, Input } from "@material-ui/core";
+import { Button, FormControl, IconButton, Input, makeStyles } from "@material-ui/core";
 import SendRoundedIcon from "@material-ui/icons/SendRounded";
+
+
+const useListStyles = makeStyles((theme) => ({
+  list: {
+    listStyle: "none",
+    height: "50vh",
+    width: "20vw",
+    position: "relative",
+    overflow: "scroll",
+  },
+}));
 
 const unflat = (squares, rows) =>
   squares.reduce(
@@ -31,11 +42,13 @@ const checkCols = (squares) => {
 
 // checking first diagonal
 const checkStDgl = (squares) => {
+  try {
   let stdgl = squares.every((array, i) => squares[0][0] == array[i])
     ? squares[0][0]
     : undefined;
   let winners = squares.reduce((acc, array, i) => {if (squares[0][0] && squares[0][0] == array[i]) { acc.push(array[i]); return acc} else return undefined},[])
   return {stdgl: stdgl, winners: winners};
+  } catch {(err) => console.log(err)}
 };
 
 // check second diagonal
@@ -61,6 +74,7 @@ function calculateWinner(bareSquares, rows) {
 }
 
 function Game() {
+  const styles = useListStyles()
   const [rows, setRows] = useState(3);
   const [input, setInput] = useState(3);
   const [lines, setLines] = useState(
@@ -113,12 +127,8 @@ function Game() {
 
   const current = history[stepNumber];
   const winner = calculateWinner(current.squares, rows);
-  if (winner == "X") {
-  }
   console.log(current.squares)
   
-
-
     // setHistory([...history].sort((a, b) => b.sorter - a.sorter));
     const getRowCol = (num) => {
       const col = lines
@@ -133,16 +143,16 @@ function Game() {
   return (
     <div className="game">
       <div className="game__input">
-        <form className="app__form">
-          <FormControl className="app__formControl">
+        <form className="game__form">
+          <FormControl className="game__formControl">
             <Input
-              className="app__input"
+              className="game__input"
               placeholder="Number of rows Required"
               value={input}
               onChange={(e) => setInput(e.target.value)}
             />
             <IconButton
-              className="app__iconButton"
+              className="game__iconButton"
               variant="contained"
               color="primary"
               type="submit"
@@ -157,6 +167,13 @@ function Game() {
         </form>
       </div>
       <div className="game__board">
+      <div className={`${winner == 'X' ? 'xwinner' : winner == 'O' ? 'owinner' : ""} board__winner`}>
+          {current.squares.includes(null)
+            ? winner
+              ? "Winner: " + winner
+              : "Next player: " + (xIsNext ? "X" : "O")
+            : "Draw"}
+        </div>
         <Board
           givenRows={rows}
           squares={current.squares}
@@ -165,17 +182,11 @@ function Game() {
         />
       </div>
       <div className="game__info">
-        <div className="game__winner">
-          {current.squares.includes(null)
-            ? winner
-              ? "Winner: " + winner
-              : "Next player: " + (xIsNext ? "X" : "O")
-            : "Draw"}
-        </div>
-        <ol>
+        <ol className={`${styles.list} info__list`}>
           {history.map((step, move, l) => (
             <li key={move}>
-              <button
+              <Button 
+                color='default'
                 style={{
                   fontWeight: move === stepNumber ? 600 : undefined,
                 }}
@@ -186,7 +197,7 @@ function Game() {
                       getRowCol(step.moveNumber)[0]
                     } and step #${step.sorter}`
                   : "Go to game start"}
-              </button>
+              </Button>
             </li>
           ))}
         </ol>

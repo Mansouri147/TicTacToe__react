@@ -1,7 +1,12 @@
+.board {
+  padding: 100px;
+  flex: 8;
+}
 
 .board__row:after {
   clear: both;
   content: "";
   display: flex;
   flex-direction: column;
+  color: #0069d933;
 }

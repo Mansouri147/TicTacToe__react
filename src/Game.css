@@ -1,5 +1,51 @@
-
+.game {
+  display: flex;
+}
 
 .game__info {
-  margin-left: 20px;
+  margin-right: -15vw;
+}
+
+.game__board {
+  flex: 8;
+}
+
+.game__info {
+  flex: 3;
+  margin-top: 10vh;
+}
+.game__input {
+  margin-top: 10vh;
+  flex: 1;
+}
+
+
+.game__info .info__list {
+  list-style: none;
+  height: 50vh;
+  width: 20vw;
+  position: relative;
+  overflow: scroll;
+}
+
+.info__list::-webkit-scrollbar {
+  display: none;
+}
+.info__list li:nth-child(0) {
+  margin-left: 50%;
+}
+
+.board__winner {
+  margin-left: 9vw;
+  font-size: 50px;
+}
+
+.xwinner {
+  font-weight: bolder;
+  color: #3f50b5;
+}
+
+.owinner {
+  font-weight: bolder;
+  color: #06b900;
 }

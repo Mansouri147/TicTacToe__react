@@ -4,16 +4,16 @@ import { Button, IconButton } from "@material-ui/core";
 
 function Square(props) {
   return (
-    <IconButton>
       <Button
         variant="outlined"
-        className="square"
+        className="square__button"
         onClick={props.onClick}
-        color={props.value == "X" ? "primary" : props.value == "O" ? "secondary" : ""}
+        fontSize="large"
+        style={{fontSize : 100}}
+        color={props.value == "X" ? "primary" : props.value == "O" ? "secondary" : "default"}
       >
         {props.value}
       </Button>
-    </IconButton>
   );
 }
 
