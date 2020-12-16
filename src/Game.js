@@ -63,6 +63,7 @@ const checkNdDgl = (squares) => {
 
 function calculateWinner(bareSquares, rows) {
   const squaresUnflated = unflat(bareSquares, rows);
+  console.log(squaresUnflated)
   const rowsRes = checkRows(squaresUnflated);
   const colsRes = checkCols(squaresUnflated);
   const stDgRes = checkStDgl(squaresUnflated);
@@ -163,12 +164,12 @@ function Game() {
             >
               <SendRoundedIcon />
             </IconButton>
-          </FormControl>
+          </FormControl>  
         </form>
       </div>
       <div className="game__board">
       <div className={`${winner == 'X' ? 'xwinner' : winner == 'O' ? 'owinner' : ""} board__winner`}>
-          {current.squares.includes(null)
+          {current.squares.includes(null) && !winner
             ? winner
               ? "Winner: " + winner
               : "Next player: " + (xIsNext ? "X" : "O")

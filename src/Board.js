@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Square from "./Square";
 import "./Board.css";
 
-function Board({ givenRows, squares, onClick, xIsNext }) {
+function Board({ givenRows, squares, onClick }) {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
