@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import Square from "./Square";
-import "./Board.css";
+import Square from "../Square";
+import "./styles.css";
 
 function Board({ givenRows, squares, onClick }) {
   const [rows, setRows] = useState([]);

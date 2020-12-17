@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
-import Board from "./Board";
-import "./Game.css";
-import { Button, FormControl, IconButton, Input, makeStyles } from "@material-ui/core";
+import Board from "../Board";
+import "./styles.css";
+import {
+  Button,
+  FormControl,
+  IconButton,
+  Input,
+  makeStyles,
+} from "@material-ui/core";
 import SendRoundedIcon from "@material-ui/icons/SendRounded";
-
 
 const useListStyles = makeStyles((theme) => ({
   list: {
@@ -43,12 +48,19 @@ const checkCols = (squares) => {
 // checking first diagonal
 const checkStDgl = (squares) => {
   try {
-  let stdgl = squares.every((array, i) => squares[0][0] == array[i])
-    ? squares[0][0]
-    : undefined;
-  let winners = squares.reduce((acc, array, i) => {if (squares[0][0] && squares[0][0] == array[i]) { acc.push(array[i]); return acc} else return undefined},[])
-  return {stdgl: stdgl, winners: winners};
-  } catch {(err) => console.log(err)}
+    let stdgl = squares.every((array, i) => squares[0][0] == array[i])
+      ? squares[0][0]
+      : undefined;
+    let winners = squares.reduce((acc, array, i) => {
+      if (squares[0][0] && squares[0][0] == array[i]) {
+        acc.push(array[i]);
+        return acc;
+      } else return undefined;
+    }, []);
+    return { stdgl: stdgl, winners: winners };
+  } catch {
+    (err) => console.log(err);
+  }
 };
 
 // check second diagonal
@@ -63,19 +75,16 @@ const checkNdDgl = (squares) => {
 
 function calculateWinner(bareSquares, rows) {
   const squaresUnflated = unflat(bareSquares, rows);
-  console.log(squaresUnflated)
   const rowsRes = checkRows(squaresUnflated);
   const colsRes = checkCols(squaresUnflated);
   const stDgRes = checkStDgl(squaresUnflated);
   const ndDgRes = checkNdDgl(squaresUnflated);
 
-  console.log('winners squares', stDgRes.winners)
-
   return rowsRes || colsRes || stDgRes.stdgl || ndDgRes;
 }
 
 function Game() {
-  const styles = useListStyles()
+  const styles = useListStyles();
   const [rows, setRows] = useState(3);
   const [input, setInput] = useState(3);
   const [lines, setLines] = useState(
@@ -128,18 +137,19 @@ function Game() {
 
   const current = history[stepNumber];
   const winner = calculateWinner(current.squares, rows);
-  console.log(current.squares)
-  
-    // setHistory([...history].sort((a, b) => b.sorter - a.sorter));
-    const getRowCol = (num) => {
-      const col = lines
-        .map((array, i) => array.indexOf(num))
-        .filter((item) => item >= 0);
-      const row = lines
-        .map((array, i) => (array.includes(num) ? i + 1 : undefined))
-        .filter((item) => item);
-      return [row, col];
-    };
+
+  // setHistory([...history].sort((a, b) => b.sorter - a.sorter));
+  const getRowCol = (num) => {
+    const col = lines
+      .map((array, i) => array.indexOf(num))
+      .filter((item) => item >= 0);
+    const row = lines
+      .map((array, i) => (array.includes(num) ? i + 1 : undefined))
+      .filter((item) => item);
+    return [row, col];
+  };
+
+  // nextfunchere
 
   return (
     <div className="game">
@@ -164,11 +174,15 @@ function Game() {
             >
               <SendRoundedIcon />
             </IconButton>
-          </FormControl>  
+          </FormControl>
         </form>
       </div>
       <div className="game__board">
-      <div className={`${winner == 'X' ? 'xwinner' : winner == 'O' ? 'owinner' : ""} board__winner`}>
+        <div
+          className={`${
+            winner == "X" ? "xwinner" : winner == "O" ? "owinner" : ""
+          } board__winner`}
+        >
           {current.squares.includes(null) && !winner
             ? winner
               ? "Winner: " + winner
@@ -186,8 +200,8 @@ function Game() {
         <ol className={`${styles.list} info__list`}>
           {history.map((step, move, l) => (
             <li key={move}>
-              <Button 
-                color='default'
+              <Button
+                color="default"
                 style={{
                   fontWeight: move === stepNumber ? 600 : undefined,
                 }}
