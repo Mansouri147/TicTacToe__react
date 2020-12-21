@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Board from "../Board";
 import "./styles.css";
 import {
@@ -21,78 +21,72 @@ const useListStyles = makeStyles((theme) => ({
 }));
 
 const unflat = (squares, rows) =>
-  squares.reduce(
-    (acc, item, i) => (i % rows ? acc : [...acc, squares.slice(i, i + rows)]),
-    []
-  );
-
-const checkRows = (squares) => {
-  let rows = squares
-    .map((array) =>
-      array.every((num) => array[0] == num) ? array[0] : undefined
-    )
-    .filter((item) => item)[0];
-  return rows;
-};
-
-const checkCols = (squares) => {
-  for (let i = 0; i <= squares.length - 1; i++) {
-    let column = squares.map((item) => {
-      return item[i];
-    });
-    let colResult = column.reduce((acc, num) => (acc == num ? acc : undefined));
-    if (colResult) return colResult;
-  }
-};
-
-// checking first diagonal
-const checkStDgl = (squares) => {
-  try {
-    let stdgl = squares.every((array, i) => squares[0][0] == array[i])
-      ? squares[0][0]
-      : undefined;
-    let winners = squares.reduce((acc, array, i) => {
-      if (squares[0][0] && squares[0][0] == array[i]) {
-        acc.push(array[i]);
-        return acc;
-      } else return undefined;
-    }, []);
-    return { stdgl: stdgl, winners: winners };
-  } catch {
-    (err) => console.log(err);
-  }
-};
-
-// check second diagonal
-const checkNdDgl = (squares) => {
-  let nddgl = squares.every(
-    (array, i) => squares[0][array.length - 1] == array[array.length - i - 1]
-  )
-    ? squares[0][squares[0].length - 1]
+  squares
+    ? squares.reduce(
+        (acc, item, i) =>
+          i % rows ? acc : [...acc, squares.slice(i, i + rows)],
+        []
+      )
     : undefined;
-  return nddgl;
+
+const checkWin = (winLineLen, board) => {
+  if (board) {
+    for (let i = 0; i < board.length - winLineLen; i++) {
+      for (let j = 0; j < board[i].length - winLineLen; j++) {
+        //Cols
+        if (
+          board[i][j] != null &&
+          board[i][j] == board[i + 1][j] &&
+          board[i + 1][j] == board[i + 2][j]
+        ) {
+          console.log("Cols");
+          return board[i][j];
+        }
+        //Rows
+        if (
+          board[i][j] != null &&
+          board[i][j] == board[i][j + 1] &&
+          board[i][j + 1] == board[i][j + 2]
+        ) {
+          console.log("Rows");
+          return board[i][j];
+        }
+        //DiagonalOne
+        if (
+          board[i][j] != null &&
+          board[i][j] == board[i + 1][j + 1] &&
+          board[i + 1][j + 1] == board[i + 2][j + 2]
+        ) {
+          console.log("diagonal one");
+          return board[i][j];
+        }
+      }
+    }
+    for (let i = winLineLen; i <= board.length - 1; i++) {
+      for (let j = 0; j <= board.length - (winLineLen + 1); j++) {
+        // Diagonal two
+        if (
+          board[i][j] != null &&
+          board[i][j] == board[i - 1][j + 1] &&
+          board[i - 1][j + 1] == board[i - 2][j + 2]
+        )
+          return board[i][j];
+      }
+    }
+  }
 };
-
-function calculateWinner(bareSquares, rows) {
-  const squaresUnflated = unflat(bareSquares, rows);
-  const rowsRes = checkRows(squaresUnflated);
-  const colsRes = checkCols(squaresUnflated);
-  const stDgRes = checkStDgl(squaresUnflated);
-  const ndDgRes = checkNdDgl(squaresUnflated);
-
-  return rowsRes || colsRes || stDgRes.stdgl || ndDgRes;
-}
 
 function Game() {
+  const [clickIndex, setClickIndex] = useState(undefined);
+  const winLineLen = useRef(3); // or given from user
   const styles = useListStyles();
-  const [rows, setRows] = useState(3);
+  const [rows, setRows] = useState(6);
   const [input, setInput] = useState(3);
   const [lines, setLines] = useState(
     [...new Array(rows).keys()].map((x) =>
       [...new Array(rows).keys()].map((i) => i + x * rows)
     )
   );
-
   const [history, setHistory] = useState([
     {
       squares: Array(9).fill(null),
@@ -106,14 +100,10 @@ function Game() {
 
   const handleClick = (i) => {
     const moveNumber = parseInt(i) + 1;
-    console.log("move n°", moveNumber);
     const h = history.slice(0, stepNumber + 1);
     const current = h[h.length - 1];
     const squares = current.squares.slice();
 
-    if (calculateWinner(squares) || squares[i]) {
-      return;
-    }
     squares[i] = xIsNext ? "X" : "O";
     setHistory(
       history.concat([
@@ -136,7 +126,168 @@ function Game() {
   }, [stepNumber]);
 
   const current = history[stepNumber];
-  const winner = calculateWinner(current.squares, rows);
+
+  // const winner = calculateWinner(current.squares, rows);
+
+  let winning = 0;
+
+  let XOBoard = unflat(current.squares, rows);
+
+  let winner = checkWin(3, XOBoard);
+
+  const checkForWinner = (e) => {
+    let rowCheck, columnCheck, diagRightToLeft, diagLeftToRight;
+    let moveNumber = e;
+    let winninglineN = 2;
+    let player = xIsNext ? "X" : "O";
+
+    rowCheck = 0;
+   const scanRight = () => {
+      // Going right
+      for (let i = 1; i <= winninglineN; i++) {
+        if (current.squares[moveNumber + i] === player) {
+          rowCheck++;
+          console.log("right");
+        } else {
+          break;
+        }
+      }
+    };
+
+    const scanLeft = () => {
+      //Going left
+      for (let i = 1; i <= winninglineN; i++) {
+        if (current.squares[moveNumber - i] === player) {
+          rowCheck++;
+          console.log("left");
+        } else {
+          break;
+        }
+      }
+    };
+
+    columnCheck = 0;
+    const scanUp = () => {
+      //Going up
+      for (let i = 1; i <= winninglineN; i++) {
+        if (current.squares[moveNumber - i * rows] === player) {
+          columnCheck++;
+          console.log("up");
+        } else {
+          break;
+        }
+      }
+    };
+
+    const scanDown = () => {
+      //Going down
+      for (let i = 1; i <= winninglineN; i++) {
+        if (current.squares[moveNumber + i * rows] === player) {
+          columnCheck++;
+          console.log("down");
+        } else {
+          break;
+        }
+      }
+    };
+
+    diagRightToLeft = 0;
+    const scanUpRight = () => {
+      // Going up right
+
+      for (let i = 1; i <= winninglineN; i++) {
+        if (current.squares[moveNumber - i * (rows - 1)] === player) {
+          diagRightToLeft++;
+          console.log("up right");
+        } else {
+          break;
+        }
+      }
+    };
+
+    const scanDownLeft = () => {
+      // Going down left
+      for (let i = 1; i <= winninglineN; i++) {
+        if (current.squares[moveNumber + i * (rows - 1)] === player) {
+          diagRightToLeft++;
+        } else {
+          break;
+        }
+      }
+    };
+
+    diagLeftToRight = 0;
+    const scanUpLeft = () => {
+      // Going up left
+      for (let i = 1; i <= winninglineN; i++) {
+        console.log({
+          i,
+          moveNumber,
+          player,
+          other: current.squares[moveNumber - i * (rows + 1)],
+          index: moveNumber - i * (rows + 1),
+        });
+        if (current.squares[moveNumber - i * (rows + 1)] === player) {
+          diagLeftToRight++;
+
+        } else {
+          break;
+        }
+      }
+    };
+
+    const scanDownRight = () => {
+      // Going down right
+      for (let i = 1; i <= winninglineN; i++) {
+        if (current.squares[moveNumber + i * (rows + 1)] === player) {
+          diagLeftToRight++;
+          console.log("down right");
+        } else {
+          break;
+        }
+      }
+    };
+
+    scanRight();
+    scanLeft();
+    scanUp();
+    scanDown();
+    scanUpRight();
+    scanDownLeft();
+    scanUpLeft();
+    scanDownRight();
+
+    if (
+      rowCheck >= 3 ||
+      columnCheck >= 3 ||
+      diagRightToLeft >= 3 ||
+      diagLeftToRight >= 3
+    ) {
+      console.log(`${player} won`);
+    }
+    console.log(
+      "rowCheck >>>",
+      rowCheck,
+      "columnCheck",
+      columnCheck,
+      "diagRightToLeft",
+      diagRightToLeft,
+      "diagLeftToRight",
+      diagLeftToRight
+    );
+  };
+
+  // if (winner || squares[i]) {
+  //   return;
+  // }
+
+  // let XOBoard = [
+  //   ['X', "X", "X", 5, 2],
+  //   ["O", 6, 7, 8, 9],
+  //   ["O", 11, 12, 13, 14],
+  //   [5, 16, 17, 18, 19],
+  //   ["X", 21, 22, 23, 24],
+  // ];
 
   // setHistory([...history].sort((a, b) => b.sorter - a.sorter));
   const getRowCol = (num) => {
@@ -148,8 +299,6 @@ function Game() {
       .filter((item) => item);
     return [row, col];
   };
-
-  // nextfunchere
 
   return (
     <div className="game">
@@ -192,7 +341,10 @@ function Game() {
         <Board
           givenRows={rows}
           squares={current.squares}
-          onClick={(e) => handleClick(e)}
+          onClick={(e) => {
+            handleClick(e);
+            checkForWinner(parseInt(e));
+          }}
           xIsNext={xIsNext}
         />
       </div>
