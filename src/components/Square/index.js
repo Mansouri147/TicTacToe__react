@@ -1,6 +1,6 @@
 import React from "react";
 import "./styles.css";
-import { Button, IconButton } from "@material-ui/core";
+import { Button } from "@material-ui/core";
 
 function Square(props) {
   return (

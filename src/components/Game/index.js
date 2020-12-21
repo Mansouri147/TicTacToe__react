@@ -20,68 +20,191 @@ const useListStyles = makeStyles((theme) => ({
   },
 }));
 
-const unflat = (squares, rows) =>
-  squares
-    ? squares.reduce(
-        (acc, item, i) =>
-          i % rows ? acc : [...acc, squares.slice(i, i + rows)],
-        []
-      )
-    : undefined;
-
-const checkWin = (winLineLen, board) => {
-  if (board) {
-    for (let i = 0; i < board.length - winLineLen; i++) {
-      for (let j = 0; j < board[i].length - winLineLen; j++) {
-        //Cols
-        if (
-          board[i][j] != null &&
-          board[i][j] == board[i + 1][j] &&
-          board[i + 1][j] == board[i + 2][j]
-        ) {
-          console.log("Cols");
-          return board[i][j];
-        }
-        //Rows
-        if (
-          board[i][j] != null &&
-          board[i][j] == board[i][j + 1] &&
-          board[i][j + 1] == board[i][j + 2]
-        ) {
-          console.log("Rows");
-          return board[i][j];
-        }
-        //DiagonalOne
-        if (
-          board[i][j] != null &&
-          board[i][j] == board[i + 1][j + 1] &&
-          board[i + 1][j + 1] == board[i + 2][j + 2]
-        ) {
-          console.log("diagonal one");
-          return board[i][j];
-        }
-      }
-    }
-    for (let i = winLineLen; i <= board.length - 1; i++) {
-      for (let j = 0; j <= board.length - (winLineLen + 1); j++) {
-        // Diagonal two
-        if (
-          board[i][j] != null &&
-          board[i][j] == board[i - 1][j + 1] &&
-          board[i - 1][j + 1] == board[i - 2][j + 2]
-        )
-          return board[i][j];
-      }
-    }
+const unflat = (squares, rows, player) => {
+  let test1 = squares.map((square) => (square === player ? square : null));
+  console.log("test1 >>>>>", test1);
+  let test2 = [];
+  for (let i = 0; i < rows; i++) {
+    test2 = [...test2, test1.slice(i, i + rows)];
   }
+  return test2;
+};
+
+const Rows = (squares, rows, winCeiling) => {
+  let winner = false;
+  let OutputRows = [...new Array(rows).keys()].map((x) =>
+    [...new Array(rows).keys()].map((i) => (i = i))
+  );
+  squares.forEach((row, rowIndex) => {
+    let inc = 0;
+    row.forEach((value, valueIndex) => {
+      if (value == "X") {
+        inc++;
+      } else {
+        inc = 0;
+      }
+      OutputRows[rowIndex][valueIndex] = inc;
+    });
+  });
+  OutputRows.some((row) => row.some((value) => (winner = value == winCeiling)));
+  return winner;
+};
+
+const Columns = (squares, rows, winCeiling) => {
+
+  // let transposed = squares[0].map((_, i) => squares.map(row => row[i]))
+
+  let winner = false;
+  let OutputRows = [...new Array(rows).keys()].map((x) =>
+    [...new Array(rows).keys()].map((i) => (i = i))
+  );
+  squares.forEach((row, rowIndex) => {
+    let inc = 0;
+    row.forEach((value, valueIndex) => {
+      if (value == "X") {
+        inc++;
+      } else {
+        inc = 0;
+      }
+      OutputRows[rowIndex][valueIndex] = inc;
+    });
+  });
+  OutputRows.some((row) => row.some((value) => (winner = value == winCeiling)));
+  return winner;
+};
+
+// const Columns = (squares, rows, winCeiling) => {
+//   let winner = false;
+//   console.log("squares", squares);
+//   let OutputColumns = [...new Array(rows).keys()].map((x) =>
+//     [...new Array(rows).keys()].map((i) => (i = i))
+//   );
+//   squares.forEach((row, i) => {
+//     let inc = 0;
+//     squares.forEach((row, valueIndex) => {
+//       if (row[i] == "X") {
+//         inc++;
+//       } else {
+//         inc = 0;
+//       }
+//       OutputColumns[i][valueIndex] = inc;
+//     });
+//   });
+
+//   OutputColumns.some((row) =>
+//     row.some((value) => (winner = value == winCeiling))
+//   );
+//   return winner;
+// };
+
+const diagonalLeftToRight = (squares, rows, winCeiling) => {
+  let winner = false;
+  // this is making an array of 4 arrays inside of it filled with null as initial values
+  let OutputSquares = [...new Array(rows).keys()].map((x) =>
+    [...new Array(rows).keys()].map((i) => i + x * rows)
+  );
+  //i goes from last row to first row.
+  let counter = 1,
+    i = rows - 1,
+    j = 0,
+    k = 1;
+  while (i >= 0) {
+    while (i < rows && j < rows) {
+      console.log(OutputSquares[i][j]);
+      if (squares[i][j] != "X") {
+        counter = 0;
+      }
+      OutputSquares[i][j] = counter++;
+      i++, j++;
+    }
+    j = 0;
+    ++k;
+    i = rows - k;
+  }
+
+  //j goes from second column to last column
+  (i = 0), (j = 1), (k = 1), (counter = 1);
+  while (j < rows) {
+    while (i < rows && j < rows) {
+      if (squares[i][j] != "X") {
+        counter = 0;
+      }
+      OutputSquares[i][j] = counter++;
+      i++, j++;
+    }
+    i = 0;
+    k++;
+    j = k;
+  }
+  OutputSquares.some((row) =>
+    row.some((value) => (winner = value == winCeiling))
+  );
+  return winner;
+};
+
+const diagonalRightToLeft = (squares, rows, winCeiling) => {
+  let winner = false;
+  // this is making an array of 4 arrays inside of it filled with null as initial values
+  let OutputSquares = [...new Array(rows).keys()].map((x) =>
+    [...new Array(rows).keys()].map((i) => i + x * rows)
+  );
+  //  i goes from last row to first row.
+  let rowIndex = rows - 2,
+    valueIndex = rows - 1,
+    k = rows - 2,
+    counter = 1;
+  while (rowIndex >= 0) {
+    while (rowIndex >= 0 && valueIndex > 0) {
+      if (squares[rowIndex][valueIndex] != "X") {
+        counter = 0;
+      }
+      OutputSquares[rowIndex][valueIndex] = counter++;
+      rowIndex--, valueIndex--;
+    }
+    valueIndex = rows - 1;
+    k--;
+    rowIndex = k;
+    counter = 1;
+  }
+
+  //j goes from second column to last column
+  (rowIndex = rows - 1), (valueIndex = rows - 1), (k = rows - 1), (counter = 1);
+  while (valueIndex >= 0) {
+    while (rowIndex >= 0 && valueIndex >= 0) {
+      if (squares[rowIndex][valueIndex] != "X") {
+        counter = 0;
+      }
+      OutputSquares[rowIndex][valueIndex] = counter++;
+      rowIndex--, valueIndex--;
+    }
+    rowIndex = rows - 1;
+    k--;
+    valueIndex = k;
+    // add this in the end _______________________________________________________
+    counter = 1;
+  }
+  OutputSquares.some((row) =>
+    row.some((value) => (winner = value == winCeiling))
+  );
+  return winner;
+};
+
+const calculateWinner = (Matrix, rows, winCeiling, player) => {
+  let board = unflat(Matrix, rows, player);
+  // let rowWinner = Rows(board, winCeiling, rows, player);
+  // let colWinner = Columns(board, 3);
+  let diagonalOneWinner = diagonalLeftToRight(board, rows, winCeiling);
+  let diagonalTwoWinner = diagonalRightToLeft(board, rows, winCeiling);
+  return diagonalLeftToRight || diagonalRightToLeft;
 };
 
 function Game() {
   const [clickIndex, setClickIndex] = useState(undefined);
-  const winLineLen = useRef(3); // or given from user
+  const winCeiling = useRef(3); // or given from user
+  const [player, setPlayer] = useState("X");
   const styles = useListStyles();
-  const [rows, setRows] = useState(6);
-  const [input, setInput] = useState(3);
+  const [rows, setRows] = useState(3);
+  const [input, setInput] = useState(6);
   const [lines, setLines] = useState(
     [...new Array(rows).keys()].map((x) =>
       [...new Array(rows).keys()].map((i) => i + x * rows)
@@ -89,7 +212,7 @@ function Game() {
   );
   const [history, setHistory] = useState([
     {
-      squares: Array(9).fill(null),
+      squares: Array(rows ** 2).fill(null),
       moveNumber: 0,
       sorter: 0,
     },
@@ -104,6 +227,9 @@ function Game() {
     const current = h[h.length - 1];
     const squares = current.squares.slice();
 
+    if (winner || squares[i]) {
+      return;
+    }
     squares[i] = xIsNext ? "X" : "O";
     setHistory(
       history.concat([
@@ -117,6 +243,7 @@ function Game() {
 
     setStepNumber(history.length);
     setXIsNext(!xIsNext);
+    setPlayer(xIsNext ? "X" : "O");
   };
 
   const jumpTo = (step) => setStepNumber(step);
@@ -126,159 +253,13 @@ function Game() {
   }, [stepNumber]);
 
   const current = history[stepNumber];
-
-  // const winner = calculateWinner(current.squares, rows);
-
-  let winning = 0;
-
-  let XOBoard = unflat(current.squares, rows);
-
-  let winner = checkWin(3, XOBoard);
-
-  const checkForWinner = (e) => {
-    let rowCheck, columnCheck, diagRightToLeft, diagLeftToRight;
-    let moveNumber = e;
-    let winninglineN = 2;
-    let player = xIsNext ? "X" : "O";
-
-    rowCheck = 0;
-   const scanRight = () => {
-      // Going right
-      for (let i = 1; i <= winninglineN; i++) {
-        if (current.squares[moveNumber + i] === player) {
-          rowCheck++;
-          console.log("right");
-        } else {
-          break;
-        }
-      }
-    };
-
-    const scanLeft = () => {
-      //Going left
-      for (let i = 1; i <= winninglineN; i++) {
-        if (current.squares[moveNumber - i] === player) {
-          rowCheck++;
-          console.log("left");
-        } else {
-          break;
-        }
-      }
-    };
-
-    columnCheck = 0;
-    const scanUp = () => {
-      //Going up
-      for (let i = 1; i <= winninglineN; i++) {
-        if (current.squares[moveNumber - i * rows] === player) {
-          columnCheck++;
-          console.log("up");
-        } else {
-          break;
-        }
-      }
-    };
-
-    const scanDown = () => {
-      //Going down
-      for (let i = 1; i <= winninglineN; i++) {
-        if (current.squares[moveNumber + i * rows] === player) {
-          columnCheck++;
-          console.log("down");
-        } else {
-          break;
-        }
-      }
-    };
-
-    diagRightToLeft = 0;
-    const scanUpRight = () => {
-      // Going up right
-
-      for (let i = 1; i <= winninglineN; i++) {
-        if (current.squares[moveNumber - i * (rows - 1)] === player) {
-          diagRightToLeft++;
-          console.log("up right");
-        } else {
-          break;
-        }
-      }
-    };
-
-    const scanDownLeft = () => {
-      // Going down left
-      for (let i = 1; i <= winninglineN; i++) {
-        if (current.squares[moveNumber + i * (rows - 1)] === player) {
-          diagRightToLeft++;
-        } else {
-          break;
-        }
-      }
-    };
-
-    diagLeftToRight = 0;
-    const scanUpLeft = () => {
-      // Going up left
-      for (let i = 1; i <= winninglineN; i++) {
-        console.log({
-          i,
-          moveNumber,
-          player,
-          other: current.squares[moveNumber - i * (rows + 1)],
-          index: moveNumber - i * (rows + 1),
-        });
-        if (current.squares[moveNumber - i * (rows + 1)] === player) {
-          diagLeftToRight++;
-
-        } else {
-          break;
-        }
-      }
-    };
-
-    const scanDownRight = () => {
-      // Going down right
-      for (let i = 1; i <= winninglineN; i++) {
-        if (current.squares[moveNumber + i * (rows + 1)] === player) {
-          diagLeftToRight++;
-          console.log("down right");
-        } else {
-          break;
-        }
-      }
-    };
-
-    scanRight();
-    scanLeft();
-    scanUp();
-    scanDown();
-    scanUpRight();
-    scanDownLeft();
-    scanUpLeft();
-    scanDownRight();
-
-    if (
-      rowCheck >= 3 ||
-      columnCheck >= 3 ||
-      diagRightToLeft >= 3 ||
-      diagLeftToRight >= 3
-    ) {
-      console.log(`${player} won`);
-    }
-    console.log(
-      "rowCheck >>>",
-      rowCheck,
-      "columnCheck",
-      columnCheck,
-      "diagRightToLeft",
-      diagRightToLeft,
-      "diagLeftToRight",
-      diagLeftToRight
-    );
-  };
-
-  // if (winner || squares[i]) {
-  //   return;
+  let winner;
+  useEffect(() => {
+    winner = calculateWinner(current.squares, rows, winCeiling.current, player);
+  }, [current.squares, rows,player]);
+  console.log("winner<<<< ", winner);
+  // if (winner) {
+  //   winner = xIsNext ? "O" : "X"
   // }
 
   // let XOBoard = [
@@ -343,7 +324,7 @@ function Game() {
           squares={current.squares}
           onClick={(e) => {
             handleClick(e);
-            checkForWinner(parseInt(e));
+            // checkForWinner(parseInt(e));
           }}
           xIsNext={xIsNext}
         />
